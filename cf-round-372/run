@@ -1,0 +1,8 @@
+#!/bin/bash
+
+USAGE='USAGE:    ./run <problem-name>'
+PROGNAME=$1
+[ -z $PROGNAME ] && echo $USAGE && exit 1
+EXENAME=$PROGNAME.exe
+
+make $EXENAME && ./$EXENAME
