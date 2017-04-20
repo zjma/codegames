@@ -48,7 +48,24 @@ void scanstr(char *buf){scanf("%s",buf);}
 
 int main()
 {
-    srand(time(NULL));
-    cout<<"IT WORKS"<<endl;
+    ll n;scanll(n);
+    ll m;scanll(m);
+    ll k;scanll(k);
+    VI hole(n);
+    rng(i,0,m){
+        ll x;scanll(x);--x;
+        hole[x]=1;
+    }
+    ll p=0;
+    rng(i,0,k){
+        ll x,y;scanll(x);scanll(y);--x;--y;
+        if (hole[p]==1) continue;
+        if (p==x){
+            p=y;
+        }else if(p==y){
+            p=x;
+        }
+    }
+    cout<<p+1<<endl;
     return 0;
 }
