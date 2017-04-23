@@ -314,6 +314,38 @@ void dijkstra(const vector<ll>& v2e0,
 }
 
 
+/**
+ * Floyd shortest paths.
+ *
+ * \assume  Fully connected.
+ * \assume  No negative loop.
+ * \assume  No integer overflow.
+ *
+ * \param n #vertices
+ * \param e Adj table.
+ *
+ * \return dist distances.
+ */
+void floyd(ll n, const VVI &e, VVI &dist){
+    dist.resize(n);
+    rng(i,0,n){
+        dist[i].resize(n);
+    }
+    rng(i,0,n){
+        rng(j,0,n){
+            dist[i][j]=(i==j)?0:e[i][j];
+        }
+    }
+    rng(k,0,n){
+        rng(i,0,n){
+            rng(j,0,n){
+                dist[i][j]=min(dist[i][j],dist[i][k]+dist[k][j]);
+            }
+        }
+    }
+}
+
+
 //Tarjan's strong connected components
 void tarjan_dfs(ll v, ll &timer, ll &cn,
         vector<ll> &vtime, vector<ll> &rtime,

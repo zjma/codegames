@@ -22,18 +22,18 @@
 #include <cstring>
 using namespace std;
 
-
 //type shortcuts
 typedef long long ll;
 typedef vector<ll> VI;
-typedef long double DOUBLE;
-typedef vector<DOUBLE> VD;
+typedef vector<VI> VVI;
+typedef vector<double> VD;
 typedef vector<VD> VVD;
 
-
 //constants
-const DOUBLE EPS=1e-9;
-const DOUBLE PI = atan(1) * 4;
+const ll INF=0x1fffffffffffffff;
+const double INFD=1e20;
+const double EPS=1e-9;
+const double PI = atan(1) * 4;
 const ll M = 1000000007;
 
 //for-loop shortcut
@@ -41,14 +41,11 @@ const ll M = 1000000007;
 
 
 //scanf shortcuts
-void scanll(ll &x) {ll r;scanf("%lld",&r);x=r;}
+ll scan() {ll r;scanf("%lld",&r);return r;}
 void scanstr(char *buf){scanf("%s",buf);}
-
-
 
 int main()
 {
-    srand(time(NULL));
-    cout<<"IT WORKS"<<endl;
+    cout<<"WORKS"<<endl;
     return 0;
 }
