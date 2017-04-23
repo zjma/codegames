@@ -1,5 +1,3 @@
-// template.cpp : Defines the entry point for the console application.
-//
 #include <climits>
 #include <cstdio>
 #include <iostream>
@@ -19,20 +17,21 @@
 #include <tuple>
 #include <ctime>
 #include <cassert>
+#include <cstring>
 using namespace std;
-
 
 //type shortcuts
 typedef long long ll;
 typedef vector<ll> VI;
-typedef long double DOUBLE;
-typedef vector<DOUBLE> VD;
+typedef vector<VI> VVI;
+typedef vector<double> VD;
 typedef vector<VD> VVD;
 
-
 //constants
-const DOUBLE EPS=1e-9;
-const DOUBLE PI = atan(1) * 4;
+const ll INF=0x1fffffffffffffff;
+const double INFD=1e20;
+const double EPS=1e-9;
+const double PI = atan(1) * 4;
 const ll M = 1000000007;
 
 //for-loop shortcut
@@ -40,7 +39,7 @@ const ll M = 1000000007;
 
 
 //scanf shortcuts
-void scanll(ll &x) {ll r;scanf("%lld",&r);x=r;}
+ll scan() {ll r;scanf("%lld",&r);return r;}
 void scanstr(char *buf){scanf("%s",buf);}
 
 
@@ -68,8 +67,8 @@ double vector2angle(const PT &v) {return atan2(v.y, v.x);}
 
 //union find
 struct UnionFind {
-    vector<ll> C;
-    vector<ll> h;
+    VI C;
+    VI h;
     UnionFind(ll n) : C(n), h(n) {
         for (int i=0;i<n;i++) C[i]=i;
     }
@@ -131,7 +130,7 @@ pair<ll,ll> reduce_vector2d(ll dx, ll dy){
 
 
 //Integer discretization. Return number of values.
-ll discretize(vector<ll> &x){
+ll discretize(VI &x){
     set<ll> avset(x.begin(),x.end());
     map<ll,ll> vmap;ll dn=0;
     for (auto it=avset.begin();it!=avset.end();it++) vmap[*it]=dn++;
@@ -156,7 +155,7 @@ ll discretize(vector<ll> &x){
  *
  * \usage
  *      LPSolver lp=LPSolver(A,b,c);
- *      DOUBLE value=lp.solve(x);
+ *      double value=lp.solve(x);
  */
 struct LPSolver {
     int m, n;
@@ -197,12 +196,12 @@ struct LPSolver {
             Pivot(r, s);
         }
     }
-    DOUBLE solve(VD &x) {
+    double solve(VD &x) {
         int r = 0;
         for (int i = 1; i < m; i++) if (D[i][n + 1] < D[r][n + 1]) r = i;
         if (D[r][n + 1] < -EPS) {
             Pivot(r, n);
-            if (!Simplex(1) || D[m + 1][n + 1] < -EPS) return -numeric_limits<DOUBLE>::infinity();
+            if (!Simplex(1) || D[m + 1][n + 1] < -EPS) return -numeric_limits<double>::infinity();
             for (int i = 0; i < m; i++) if (B[i] == -1) {
                 int s = -1;
                 for (int j = 0; j <= n; j++)
@@ -210,7 +209,7 @@ struct LPSolver {
                 Pivot(i, s);
             }
         }
-        if (!Simplex(2)) return numeric_limits<DOUBLE>::infinity();
+        if (!Simplex(2)) return numeric_limits<double>::infinity();
         x = VD(n);
         for (int i = 0; i < m; i++) if (B[i] < n) x[B[i]] = D[i][n + 1];
         return D[m][n + 1];
@@ -231,8 +230,8 @@ struct LPSolver {
  * \return e2n  edge.next
  */
 void buildadjlist(ll n,
-    const vector<ll> &froms, const vector<ll> &tos,
-    vector<ll> &v2e0, vector<ll> &e2n)
+    const VI &froms, const VI &tos,
+    VI &v2e0, VI &e2n)
 {
     v2e0.resize(n);
     v2e0.assign(n, -1);
@@ -259,7 +258,7 @@ void buildadjlist(ll n,
  *
  * \return  d   distances
  */
-void spfa(const vector<ll> &v2e0, const vector<ll> &e2t, const vector<ll> &e2c, const vector<ll> &e2n, ll n, ll s, vector<ll> &d){
+void spfa(const VI &v2e0, const VI &e2t, const VI &e2c, const VI &e2n, ll n, ll s, VI &d){
     vector<bool> inq(n);
     d.assign(n, LLONG_MAX);
     d[s]=0;
@@ -287,9 +286,9 @@ void spfa(const vector<ll> &v2e0, const vector<ll> &e2t, const vector<ll> &e2c, 
 
 
 //dijkstra
-void dijkstra(const vector<ll>& v2e0,
-        const vector<ll>& e2t, const vector<ll>& e2c, const vector<ll>& e2n,
-        ll src, vector<ll>& dist, vector<ll>& prec)
+void dijkstra(const VI& v2e0,
+        const VI& e2t, const VI& e2c, const VI& e2n,
+        ll src, VI& dist, VI& prec)
 {
     ll n=v2e0.size();
     dist.resize(n);dist.assign(n,INT_MAX);
@@ -348,10 +347,10 @@ void floyd(ll n, const VVI &e, VVI &dist){
 
 //Tarjan's strong connected components
 void tarjan_dfs(ll v, ll &timer, ll &cn,
-        vector<ll> &vtime, vector<ll> &rtime,
-        const vector<ll> &v2e0,
-        const vector<ll> &e2t, const vector<ll> &e2n,
-        vector<ll> &v2c, stack<ll> &stk)
+        VI &vtime, VI &rtime,
+        const VI &v2e0,
+        const VI &e2t, const VI &e2n,
+        VI &v2c, stack<ll> &stk)
 {
     stk.push(v);
     rtime[v]=vtime[v]=timer++;
@@ -384,14 +383,14 @@ void tarjan_dfs(ll v, ll &timer, ll &cn,
  * \return  #components, vid-cid mapping stored in v2c
  */
 ll tarjan_strong(ll n,
-        const vector<ll> &v2e0,
-        const vector<ll> &e2t,
-        const vector<ll> &e2n,
-        vector<ll> &v2c)
+        const VI &v2e0,
+        const VI &e2t,
+        const VI &e2n,
+        VI &v2c)
 {
     v2c.assign(n,-1);
-    vector<ll> vtime(n,-1);
-    vector<ll> rtime(n,-1);
+    VI vtime(n,-1);
+    VI rtime(n,-1);
     stack<ll> stk;
     ll timer=0,cn=0;
     for (ll i=0;i<n;i++){
@@ -425,31 +424,31 @@ ll tarjan_strong(ll n,
  *      ll sol=ff.eval();
  */
 struct FordFulk {
-    const vector<ll> &v2e0;
-    const vector<ll> &e2f;
-    const vector<ll> &e2t;
-    const vector<ll> &e2c;
-    const vector<ll> &e2n;
+    const VI &v2e0;
+    const VI &e2f;
+    const VI &e2t;
+    const VI &e2c;
+    const VI &e2n;
     ll s,t;
-    FordFulk(const vector<ll> &_v2e0,
-        const vector<ll> &_e2f,
-        const vector<ll> &_e2t,
-        const vector<ll> &_e2c,
-        const vector<ll> &_e2n,
+    FordFulk(const VI &_v2e0,
+        const VI &_e2f,
+        const VI &_e2t,
+        const VI &_e2c,
+        const VI &_e2n,
         ll _s, ll _t)
         :  s(_s),t(_t),v2e0(_v2e0),e2f(_e2f),e2t(_e2t),e2c(_e2c),e2n(_e2n)
     {}
-    ll _find_aug_path(const vector<ll> &v2e0,
-        const vector<ll> &e2f,
-        const vector<ll> &e2t,
-        const vector<ll> &e2c,
-        const vector<ll> &e2n,
-        ll s, ll t, vector<ll> &epath)
+    ll _find_aug_path(const VI &v2e0,
+        const VI &e2f,
+        const VI &e2t,
+        const VI &e2c,
+        const VI &e2n,
+        ll s, ll t, VI &epath)
     {
-        vector<ll> q2v;
-        vector<ll> q2p;
-        vector<ll> q2e;
-        vector<ll> q2f;
+        VI q2v;
+        VI q2p;
+        VI q2e;
+        VI q2f;
         vector<bool> inq(v2e0.size(), false);
         //BFS
         q2v.push_back(s);
@@ -504,12 +503,12 @@ struct FordFulk {
             nei[er.first] = ren++;
         }
         ll rvn = v2e0.size();
-        vector<ll> rv2e0(rvn, -1);
-        vector<ll> re2f(ren);//from
-        vector<ll> re2t(ren);//to
-        vector<ll> re2c(ren);//cost
-        vector<ll> re2n(ren);//next edge
-        vector<ll> re2p(ren);//peer edge
+        VI rv2e0(rvn, -1);
+        VI re2f(ren);//from
+        VI re2t(ren);//to
+        VI re2c(ren);//cost
+        VI re2n(ren);//next edge
+        VI re2p(ren);//peer edge
         ll rei = 0;
         for (auto er : rsd) {
             ll f = er.first.first;
@@ -526,7 +525,7 @@ struct FordFulk {
 
         //FF main
         ll sol = 0;
-        vector<ll> epath;
+        VI epath;
         while (true) {
             epath.clear();
             ll res = _find_aug_path(rv2e0, re2f, re2t, re2c, re2n, s, t, epath);
@@ -588,9 +587,9 @@ struct BIT1D {
 template <typename T>
 struct LazySegTree1D {
     vector<T> v;
-    vector<ll> opr;//0: set value; 1: update result; -1: idle
+    VI opr;//0: set value; 1: update result; -1: idle
     vector<T> opd;
-    vector<ll> nxt;
+    VI nxt;
     ll LEFT;
     ll RGHT;
     T (*fnx)(ll,T);
@@ -672,10 +671,10 @@ struct LazySegTree1D {
 
 
 // Suffix array (doubling) O(n*lgn*lgn)
-void suffix_array(const string &s, vector<ll> &sa, vector<ll> &rank){
+void suffix_array(const string &s, VI &sa, VI &rank){
     ll n=s.size();
     ll ri=0;
-    vector<vector<ll>> tmprank(2,vector<ll>(n));
+    VVI tmprank(2,VI(n));
     vector<pair<pair<ll,ll>,ll>> kni(n);
 
     //Compute rank1[] rank2[], rank4[], rank8[]...
@@ -710,7 +709,7 @@ struct SuffixTree{
     vector<unordered_map<ll,ll>> sta;
     vector<unordered_map<ll,ll>> end;
     vector<unordered_map<ll,ll>> nxt;
-    vector<ll> suflink;
+    VI suflink;
     ll capacity;
     ll node_count;
     ll act_node;
@@ -761,7 +760,7 @@ struct SuffixTree{
             sta=vector<unordered_map<ll,ll>>(est_nodecnt);
             end=vector<unordered_map<ll,ll>>(est_nodecnt);
             nxt=vector<unordered_map<ll,ll>>(est_nodecnt);
-            suflink=vector<ll>(est_nodecnt,-1);
+            suflink=VI(est_nodecnt,-1);
         }
         clear();
     }
