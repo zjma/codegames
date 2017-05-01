@@ -1,0 +1,10 @@
+#!/bin/bash
+
+USAGE="USAGE:    ./drun <problem-name>"
+test -z ${DCJTOOLDIR+x} && echo "envvar DCJTOOLDIR is not set." && exit 1
+PROGNAME=$1
+[ -z $PROGNAME ] && echo $USAGE && exit 1
+NODECOUNT=20
+
+
+python $DCJTOOLDIR/dcj.py test --source $PROGNAME.cpp --nodes $NODECOUNT
