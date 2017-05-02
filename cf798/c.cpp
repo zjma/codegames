@@ -44,48 +44,40 @@ const ll M = 1000000007;
 ll scan() {ll r;scanf("%lld",&r);return r;}
 void scanstr(char *buf){scanf("%s",buf);}
 
-ll movefromto(string &f, string &t){
-    ll n=f.size();
-    ll m=t.size();
-    if (n!=m) return -1;
-    rng(i,0,n){
-        ll flag=1;
-        rng(j,0,n){
-            if (f[(i+j)%n]!=t[j]) {
-                flag=0;
-                break;
-            }
-        }
-        if (flag) return i;
-    }
-    return -1;
-}
+ll gcd(ll a, ll b) { for (;b>0;swap(a, b))a %= b;return a; }
 
 int main()
 {
-    ll n;cin>>n;
-    vector<string> s(n);
+    ll n=scan();
+    VI a(n);
     rng(i,0,n){
-        cin>>s[i];
+        a[i]=scan();
     }
-    VVI d(n,VI(n));
+    ll g=a[0];
+    rng(i,1,n){
+        g=gcd(g,a[i]);
+    }
+    if (g>1){
+        cout<<"YES"<<endl<<0<<endl;
+        return 0;
+    }
     rng(i,0,n){
-        rng(j,0,n){
-            d[i][j]=movefromto(s[i],s[j]);
-            if (d[i][j]==-1){
-                cout<<-1<<endl;
-                return 0;
-            }
+        a[i]%=2;
+    }
+    VI segs;
+    ll acc=0;
+    rng(i,0,n){
+        acc+=a[i];
+        if (a[i]==1&&(i+1==n||a[i+1]==0)){
+            segs.push_back(acc);
+            acc=0;
         }
     }
-    ll bst=INF;
-    rng(i,0,n){
-        ll crt=0;
-        rng(j,0,n){
-            crt+=d[j][i];
-        }
-        bst=min(bst,crt);
+    ll ans=0;
+    ll sn=segs.size();
+    for(auto seg:segs){
+        ans+=(seg%2==0)?(seg/2):(2+seg/2);
     }
-    cout<<bst<<endl;
+    cout<<"YES"<<endl<<ans<<endl;
     return 0;
 }

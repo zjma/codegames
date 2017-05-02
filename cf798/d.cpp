@@ -44,48 +44,33 @@ const ll M = 1000000007;
 ll scan() {ll r;scanf("%lld",&r);return r;}
 void scanstr(char *buf){scanf("%s",buf);}
 
-ll movefromto(string &f, string &t){
-    ll n=f.size();
-    ll m=t.size();
-    if (n!=m) return -1;
-    rng(i,0,n){
-        ll flag=1;
-        rng(j,0,n){
-            if (f[(i+j)%n]!=t[j]) {
-                flag=0;
-                break;
-            }
-        }
-        if (flag) return i;
-    }
-    return -1;
-}
-
 int main()
 {
-    ll n;cin>>n;
-    vector<string> s(n);
-    rng(i,0,n){
-        cin>>s[i];
-    }
-    VVI d(n,VI(n));
-    rng(i,0,n){
-        rng(j,0,n){
-            d[i][j]=movefromto(s[i],s[j]);
-            if (d[i][j]==-1){
-                cout<<-1<<endl;
-                return 0;
-            }
+    ll n=scan();
+    VI a(n); rng(i,0,n) a[i]=scan();
+    VI b(n); rng(i,0,n) b[i]=scan();
+    vector<pair<ll,ll>> f(n);
+    rng(i,0,n) f[i]=make_pair(-a[i],i);
+    sort(f.begin(),f.end());
+    VI c(n); rng(i,0,n) c[i]=f[i].second;
+
+    VI ans;
+    ans.push_back(c[0]);
+
+    rng(i,0,(n-1)/2){
+        ll j=i*2+1;
+        if (b[c[j]]>=b[c[j+1]]){
+            ans.push_back(c[j]);
+        }else{
+            ans.push_back(c[j+1]);
         }
     }
-    ll bst=INF;
-    rng(i,0,n){
-        ll crt=0;
-        rng(j,0,n){
-            crt+=d[j][i];
-        }
-        bst=min(bst,crt);
+    if (n%2==0){
+        ans.push_back(c[n-1]);
     }
-    cout<<bst<<endl;
+    cout<<ans.size()<<endl;
+    for (auto x:ans){
+        cout<<(x+1)<<" ";
+    }cout<<endl;
     return 0;
 }
