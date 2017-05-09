@@ -57,6 +57,7 @@ ll helloed[N];
 VI nb[N];
 VI sons[N];
 VI f[N];
+VI bsuf[N];
 
 void dfs(ll parent, ll v, ll ci){
     prnt[v]=parent;
@@ -92,28 +93,14 @@ void dfs2(ll v, ll prntstg){
     }
 }
 
-double calc(const VI &a, const VI &b){
+double calc(const VI &a, const VI &b, const VI &bsuf){
     ll an=a.size();
     ll bn=b.size();
     ll bar=max(a[an-1],b[bn-1]);
 
-    VI bsuf(bn+1);
-    rng(i,0,bn){
-        bsuf[i+1]=bsuf[i]+b[bn-1-i];
-    }
-
     ll acc=0;
     rng(ai,0,an){
-        ll L=-1,R=bn;
-        while (L+1<R){
-            ll M=(L+R)/2;
-            if (a[ai]+b[M]+1>bar){
-                R=M;
-            }else{
-                L=M;
-            }
-        }
-        ll bi=R;
+        ll bi=lower_bound(b.begin(),b.end(),bar-a[ai]-1)-b.begin();
         acc+=bar*bi+bsuf[bn-bi]+(bn-bi)*(a[ai]+1);
     }
     return acc/double(an*bn);
@@ -148,9 +135,13 @@ int main()
     }
     rng(i,0,comn){
         sort(f[i].begin(),f[i].end());
+        ll bn=comsize[i];
+        bsuf[i].resize(bn+1);
+        rng(j,1,bn+1){
+            bsuf[i][j]=bsuf[i][j-1]+f[i][bn-j];
+        }
     }
 
-    cout.precision(9);
     map<ll,double> mem;
     rng(qi,0,q){
         ll x=scan()-1,y=scan()-1;
@@ -160,12 +151,16 @@ int main()
             printf("-1\n");
             continue;
         }
-        ll key=X*comn+Y;
-        if (comsize[X]>comsize[Y]) swap(X,Y);
+        ll key=(X<Y)?(X*comn+Y):(Y*comn+X);
+        double ans;
         if (mem.find(key)==mem.end()){
-            mem[key]=calc(f[X],f[Y]);
+            if (comsize[X]>comsize[Y]) swap(X,Y);
+            ans=calc(f[X],f[Y],bsuf[Y]);
+            mem[key]=ans;
+        }else{
+            ans=mem[key];
         }
-        printf("%.9f\n",mem[key]);
+        printf("%.9f\n",ans);
     }
     return 0;
 }

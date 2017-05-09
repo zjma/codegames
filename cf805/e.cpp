@@ -59,24 +59,26 @@ void build(ll v, const VVI &nb, VI &met, VVI &v2sons){
     }
 }
 
-void dfs(const VVI &v2sons, const vector<set<ll>> &v2ices, ll v, map<ll,ll> &coloring, set<ll> &idlecolors){
-    auto myices=v2ices[v];
-    for (auto pr:coloring){
-        ll ice=pr.first;
-        ll cid=pr.second;
-        if (myices.find(ice)==myices.end()){
-            idlecolors.insert(cid);
+void dfs(const VVI &v2sons, const vector<set<ll>> &v2ices, ll p, ll v, VI &coloring){
+    VI diff;
+    set<ll> unavacids;
+    for (auto ice:v2ices[v]){
+        if (p<0||v2ices[p].find(ice)==v2ices[p].end()){
+            diff.push_back(ice);
+        }else{
+            unavacids.insert(coloring[ice]);
         }
     }
-    for(auto ice:myices){
-        if (coloring.find(ice)==coloring.end()){
-            ll newcid=setmin(idlecolors);
-            idlecolors.erase(newcid);
-            coloring[ice]=newcid;
-        }
+
+    ll cid=0;
+    for(auto ice:diff){
+        while (unavacids.find(cid)!=unavacids.end()) ++cid;
+        coloring[ice]=cid;
+        ++cid;
     }
+
     for (auto chd:v2sons[v]){
-        dfs(v2sons,v2ices,chd,coloring,idlecolors);
+        dfs(v2sons,v2ices,v,chd,coloring);
     }
 }
 
@@ -101,15 +103,14 @@ int main()
     VVI v2sons(n);
     build(0,nb,met,v2sons);
 
-    map<ll,ll> coloring;
+    VI coloring(m,-1);
 
-    set<ll> idlecolors;
+    dfs(v2sons,v2ices,-1,0,coloring);
+
     rng(i,0,m){
-        idlecolors.insert(i);
+        if (coloring[i]<0) coloring[i]=0;
     }
-
-    dfs(v2sons,v2ices,0,coloring,idlecolors);
-
+    
     ll tot=-1;
     rng(i,0,m){
         tot=max(tot,coloring[i]);
