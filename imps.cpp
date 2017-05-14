@@ -86,18 +86,18 @@ struct UnionFind {
 
 
 //euclid, modulo
-ll mod(ll x, ll m) { return ((x%m) + m) % m; }
-ll add(ll a, ll b, ll m){return mod(mod(a,m)+mod(b,m),m);}
-ll sub(ll a, ll b, ll m){return mod(mod(a,m)-mod(b,m),m);}
-ll mul(ll a, ll b, ll m){return mod(mod(a,m)*mod(b,m),m);}
-ll pow(ll b, ll e, ll m){
+ll mod(ll x) { return ((x%M) + M) % M; }
+ll add(ll a, ll b){return mod(mod(a)+mod(b));}
+ll sub(ll a, ll b){return mod(mod(a)-mod(b));}
+ll mul(ll a, ll b){return mod(mod(a)*mod(b));}
+ll power(ll b, ll e){
     ll ans=1;
     while (e>0){
-        if (e%2) ans=mul(ans,b,m);
-        b=mul(b,b,m);
+        if (e%2) ans=mul(ans,b);
+        b=mul(b,b);
         e/=2;
     }
-    return mod(ans,m);
+    return mod(ans);
 }
 ll gcd(ll a, ll b) { for (;b>0;swap(a, b))a %= b;return a; }
 ll extended_euclid(ll a, ll b, ll &x, ll &y) {
