@@ -1,0 +1,35 @@
+#!/bin/bash
+
+USAGE="USAGE:    ./drun <problem-name> <sample-headerfile> [nodecount=20]"
+test -z ${DCJTOOLDIR+x} && echo "envvar DCJTOOLDIR is not set." && exit 1
+
+PROGNAME=$1
+SAMPLEHEADER=$2
+NODECOUNT=$3
+
+test -z $PROGNAME && echo $USAGE && exit 1
+test -z $SAMPLEHEADER && echo $USAGE && exit 1
+test -z $NODECOUNT && NODECOUNT=20
+
+PROG_SOURCE_NAME=$PROGNAME.cpp
+PROG_HEADER_NAME=$PROGNAME.h
+
+if [ ! -e $PROG_SOURCE_NAME ]
+then
+    echo "ERR: source file $PROG_SOURCE_NAME not found."
+    exit 1
+fi
+
+if [ ! -e $SAMPLEHEADER ]
+then
+    echo "ERR: sample header $SAMPLEHEADER not found."
+    exit 1
+fi
+
+mkdir -p dtmp
+cp $PROG_SOURCE_NAME dtmp/$PROG_SOURCE_NAME
+cp $SAMPLEHEADER dtmp/$PROG_HEADER_NAME
+cd dtmp
+python $DCJTOOLDIR/dcj.py test --source $PROG_SOURCE_NAME --nodes $NODECOUNT
+cd ..
+rm -rf dtmp
