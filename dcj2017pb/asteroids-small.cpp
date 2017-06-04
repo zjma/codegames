@@ -19,7 +19,7 @@
 #include <ctime>
 #include <cassert>
 #include <cstring>
-#include "solution.h"
+#include "asteroids.h"
 using namespace std;
 
 //type shortcuts
@@ -38,6 +38,12 @@ const ll M = 1000000007;
 
 //for-loop shortcut
 #define rng(i,begin,end) for (ll i=begin;i<end;++i)
+
+ll max3(ll a, ll b, ll c){
+    return max(max(a,b),c);
+}
+
+ll add(ll a, ll b){return (a==-INF||b==-INF)?-INF:(a+b);}
 
 ll ME=0;
 ll NODES=0;
@@ -77,16 +83,41 @@ pair<ll,ll> get_interval(ll NODES, ll ME, ll n) {
     return make_pair(L,R);
 }
 
+ll parseChar(char c){
+    return (c=='#')?(-INF):(c-48);
+}
+
 int main()
 {
-    srand(time(NULL));
     ME=MyNodeId();
     NODES=NumberOfNodes();
-    ll n=GetN();
-    ll L,R;tie(L,R)=get_interval(NODES,ME,n);
-    printf("myseg=[%lld,%lld], myseglen=%lld\n",L,R,R-L+1);
-    if (L>R) return 0;
-    ll VNODES=min(n,NODES);
-    printf("Working node count: %lld\n",VNODES);
+    ll rn=GetHeight()+1;
+    ll cn=GetWidth()+2;
+    ll L,R;tie(L,R)=get_interval(NODES,ME,cn);
+
+    if (ME>=1) return 0;
+    VVI a(rn,VI(cn));
+    rng(i,0,rn-1){
+        rng(j,0,cn){
+            a[i][j]=(j==0||j==cn-1)?(-INF):parseChar(GetPosition(i,j-1));
+        }
+    }
+
+    VVI f(rn,VI(cn));
+    rng(j,0,cn){
+        f[0][j]=a[0][j];
+    }
+    rng(i,1,rn){
+        f[i][0]=f[i][cn-1]=-INF;
+        rng(j,1,cn-1){
+            f[i][j]=add(max3(add(f[i-1][j-1],a[i-1][j]),f[i-1][j],add(f[i-1][j+1],a[i-1][j])),a[i][j]);
+        }
+    }
+    ll ans=-INF;
+    rng(j,0,cn){
+        ans=max(ans,f[rn-1][j]);
+    }
+    ans=max(ans,-1LL);
+    cout<<ans<<endl;
     return 0;
 }

@@ -19,7 +19,7 @@
 #include <ctime>
 #include <cassert>
 #include <cstring>
-#include "solution.h"
+#include "pancakes.h"
 using namespace std;
 
 //type shortcuts
@@ -82,11 +82,30 @@ int main()
     srand(time(NULL));
     ME=MyNodeId();
     NODES=NumberOfNodes();
-    ll n=GetN();
-    ll L,R;tie(L,R)=get_interval(NODES,ME,n);
-    printf("myseg=[%lld,%lld], myseglen=%lld\n",L,R,R-L+1);
+    ll n=GetStackSize();
+    ll m=n-1;
+    if (m==0){
+        if (ME==0) cout<<1<<endl;
+        return 0;
+    }
+    ll L,R;tie(L,R)=get_interval(NODES,ME,m);
     if (L>R) return 0;
-    ll VNODES=min(n,NODES);
-    printf("Working node count: %lld\n",VNODES);
+    ll VNODES=min(NODES,m);
+    ll x=GetStackItem(L);
+    ll ans=0;
+    rng(i,L+1,R+2){
+        ll y=GetStackItem(i);
+        if (x>y) ++ans;
+        x=y;
+    }
+    PutLL(0,ans);Send(0);
+    if (ME==0){
+        ll ans=1;
+        rng(i,0,VNODES){
+            Receive(i);
+            ans+=GetLL(i);
+        }
+        cout<<ans<<endl;
+    }
     return 0;
 }

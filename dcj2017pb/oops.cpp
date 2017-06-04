@@ -19,7 +19,7 @@
 #include <ctime>
 #include <cassert>
 #include <cstring>
-#include "solution.h"
+#include "oops.h"
 using namespace std;
 
 //type shortcuts
@@ -30,7 +30,7 @@ typedef vector<double> VD;
 typedef vector<VD> VVD;
 
 //constants
-const ll INF=0x1fffffffffffffff;
+const ll INF=1000000000000000001LL;
 const double INFD=1e20;
 const double EPS=1e-9;
 const double PI = atan(1) * 4;
@@ -84,9 +84,28 @@ int main()
     NODES=NumberOfNodes();
     ll n=GetN();
     ll L,R;tie(L,R)=get_interval(NODES,ME,n);
-    printf("myseg=[%lld,%lld], myseglen=%lld\n",L,R,R-L+1);
     if (L>R) return 0;
     ll VNODES=min(n,NODES);
-    printf("Working node count: %lld\n",VNODES);
+    ll ansmin=INF;
+    ll ansmax=-INF;
+    rng(i,L,R+1){
+        ll v=GetNumber(i);
+        ansmin=min(ansmin,v);
+        ansmax=max(ansmax,v);
+    }
+    PutLL(0,ansmin);
+    PutLL(0,ansmax);
+    Send(0);
+
+    if (ME==0){
+        ll ansmin=INF;
+        ll ansmax=-INF;
+        rng(i,0,VNODES){
+            Receive(i);
+            ansmin=min(ansmin,GetLL(i));
+            ansmax=max(ansmax,GetLL(i));
+        }
+        cout<<(ansmax-ansmin)<<endl;
+    }
     return 0;
 }
