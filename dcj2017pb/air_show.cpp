@@ -41,42 +41,6 @@ const ll M = 1000000007;
 
 ll ME=0;
 ll NODES=0;
-void INIT() {ME=MyNodeId();NODES=NumberOfNodes();}
-
-/**
- * Distribute segment [0,n-1] to nodes [0,NODES-1] almost uniformly.
- *
- * Example 1: n=12,NODES=5
- * NODEID   0       1       2       3       4
- * segrange 0-2     3-5     6-7     8-9     10-11
- * segsize  3       3       2       2       2
- *
- * Example 2: n=3,NODES=5
- * NODEID   0       1       2       3       4
- * segrange 0-0     1-1     2-2     3-2     3-2
- * segsize  1       1       1       0       0
- *
- * Example 3: n=10,NODES=5
- * NODEID   0       1       2       3       4
- * segrange 0-1     2-3     4-5     6-7     8-9
- * segsize  2       2       2       2       2
- *
- */
-pair<ll,ll> get_my_inverval(ll n) {
-    ll n2=n%NODES;
-    ll n1=NODES-n2;
-    ll l1=n/NODES;
-    ll l2=l1+1;
-    ll L,R;
-    if (ME<n2){
-        L=l2*ME;
-        R=L+l2-1;
-    }else{
-        L=l2*n2+l1*(ME-n2);
-        R=L+l1-1;
-    }
-    return make_pair(L,R);
-}
 
 pair<ll,ll> get_interval(ll NODES, ll ME, ll n) {
     ll n2=n%NODES;
@@ -94,206 +58,260 @@ pair<ll,ll> get_interval(ll NODES, ll ME, ll n) {
     return make_pair(L,R);
 }
 
-ll N;
-ll SD;
-VVI tids(2);
-VVI stmps(2);
-VVI xs(2);
-VVI ys(2);
-VVI zs(2);
-VI ans(2);
-VI tmpn(2);
+#define sqr(x) ((x)*(x))
+#define makekey(stamp,which) (((stamp)<<1)|(which))
 
-void appendPosition(ll which, ll tid){
-    ll pos=GetPosition(which,tid);
-    ll posx=(pos&0xfffff0000000000)>>40;
-    ll posy=(pos&0xfffff00000)>>20;
-    ll posz=pos&0xfffff;
-    xs[which].push_back(posx);
-    ys[which].push_back(posy);
-    zs[which].push_back(posz);
-}
-
-pair<ll,ll> getkey(ll which, ll i){
-    return make_pair(stmps[which][i],which);
-}
-
-bool dangerdist(ll which){
-    ll myn=tmpn[which];
-    ll yrn=tmpn[1-which];
-    assert(myn>=1);
-    assert(yrn>=2);
-    assert(getkey(1-which,yrn-2)<getkey(which,myn-1));
-    assert(getkey(which,myn-1)<getkey(1-which,yrn-1));
-    ll x0=xs[1-which][yrn-2];
-    ll x1=xs[1-which][yrn-1];
-    ll y0=ys[1-which][yrn-2];
-    ll y1=ys[1-which][yrn-1];
-    ll z0=zs[1-which][yrn-2];
-    ll z1=zs[1-which][yrn-1];
-    ll x=xs[which][myn-1];
-    ll y=ys[which][myn-1];
-    ll z=zs[which][myn-1];
-    //cerr<<endl;
-    //cerr<<"P0=("<<x0<<","<<y0<<","<<z0<<"), t0="<<stmps[1-which][yrn-2]<<endl;
-    //cerr<<"P1=("<<x1<<","<<y1<<","<<z1<<"), t1="<<stmps[1-which][yrn-1]<<endl;
-    //cerr<<"PP=("<<x<<","<<y<<","<<z<<"), tt="<<stmps[which][myn-1]<<endl;
-
-    ll dt0=stmps[which][myn-1]-stmps[1-which][yrn-2];
-    ll dt1=stmps[1-which][yrn-1]-stmps[which][myn-1];
-     __int128 t=dt0+dt1;
-
-     __int128 tdx=dt0*x1+dt1*x0-t*x;
-     __int128 tdy=dt0*y1+dt1*y0-t*y;
-     __int128 tdz=dt0*z1+dt1*z0-t*z;
-    bool flag=tdx*tdx+tdy*tdy+tdz*tdz<SD*SD*t*t;
-    if (flag) {
-        //cerr<<"DANGER"<<endl;
+void midpoint(
+    double x0, double y0, double z0,
+    ll t0, ll t1,
+    double x1, double y1, double z1,
+    double &xm, double &ym, double &zm
+    )
+{
+    ll tt=t0+t1;
+    if (tt==0){
+        xm=x1;
+        ym=y1;
+        zm=z1;
+    }else{
+        xm=(t0*x1+t1*x0)/tt;
+        ym=(t0*y1+t1*y0)/tt;
+        zm=(t0*z1+t1*z0)/tt;
     }
-    //cerr<<endl;
-    return flag;
 }
 
-void fetchNextSegment(ll which){
-    ll tn=tmpn[which];
-    assert(tn>=1);
-    ll oldtid=tids[which][tn-1];
-    ll oldstamp=stmps[which][tn-1];
-    ll newtid=oldtid+1;
-    ll dt=GetTime(which,oldtid);
-    ll newstamp=oldstamp+dt;
-    tids[which].push_back(newtid);
-    stmps[which].push_back(newstamp);
-    appendPosition(which,newtid);
-    ++tmpn[which];
+double distance2(double x0, double y0, double z0, double x1, double y1, double z1){
+    return sqr(x0-x1)+sqr(y0-y1)+sqr(z0-z1);
 }
 
+void parsePosition(ll encoded, ll &x, ll &y, ll &z){
+    x=(encoded&0xfffff0000000000)>>40;
+    y=(encoded&0xfffff00000)>>20;
+    z=encoded&0xfffff;
+}
 
 int main()
 {
-    srand(time(NULL));
-    INIT();
-    N=GetNumSegments();
-    SD=GetSafeDistance();
-    ll L,R;tie(L,R)=get_my_inverval(N);
-    ll t0acc=0;
-    ll t1acc=0;
-    rng(i,L,R+1){
-        t0acc+=GetTime(0,i);
-        t1acc+=GetTime(1,i);
+    NODES=NumberOfNodes();
+    ME=MyNodeId();
+    ll segn=GetNumSegments();
+    ll safedis=GetSafeDistance();
+    ll safedis2=sqr(safedis);
+    VI segL(NODES);
+    VI segR(NODES);
+    rng(i,0,NODES){
+        tie(segL[i],segR[i])=get_interval(NODES,i,segn-2);
     }
-    PutLL(0,L);
-    PutLL(0,R);
-    PutLL(0,t0acc);
-    PutLL(0,t1acc);
-    Send(0);
+    if (segL[ME]<=segR[ME]){
+        ll localtimeacc0=0;
+        ll localtimeacc1=0;
+        rng(i,segL[ME],segR[ME]+1){
+            localtimeacc0+=GetTime(0,i+1);
+            localtimeacc1+=GetTime(1,i+1);
+        }
+        PutLL(0,localtimeacc0);
+        PutLL(0,localtimeacc1);
+        Send(0);
+    }
 
     if (ME==0){
-        vector<tuple<ll,ll,ll>> events;
-        events.emplace_back(0,0,0);
-        events.emplace_back(0,1,0);
-        ll t0acc=0,t1acc=0;
-        rng(i,0,NODES){
-            Receive(i);
-            ll Li=GetLL(i);
-            ll Ri=GetLL(i);
-            ll newt0acc=GetLL(i);
-            ll newt1acc=GetLL(i);
-            if (Li>Ri) continue;
-            t0acc+=newt0acc;
-            t1acc+=newt1acc;
-            events.emplace_back(t0acc,0,Ri+1);
-            events.emplace_back(t1acc,1,Ri+1);
+        vector<tuple<ll,ll,ll>> events;//stamp,which,index
+        ll timeacc0=GetTime(0,0);
+        ll timeacc1=GetTime(1,0);
+        events.emplace_back(timeacc0,0,1);
+        events.emplace_back(timeacc1,1,1);
+        rng(ni,0,NODES){
+            if (segL[ni]>segR[ni]) continue;
+            Receive(ni);
+            timeacc0+=GetLL(ni);
+            timeacc1+=GetLL(ni);
+            events.emplace_back(timeacc0,0,segR[ni]+2);
+            events.emplace_back(timeacc1,1,segR[ni]+2);
         }
-        ll en=events.size();
+
+        ll tottime0=timeacc0+GetTime(0,segn-1);
+        ll tottime1=timeacc1+GetTime(1,segn-1);
+        assert(tottime0==tottime1);
 
         sort(events.begin(),events.end());
-
-        VI stamp(en);
-        VI which(en);
-        VI index(en);
-        rng(i,0,en){
-            tie(stamp[i],which[i],index[i])=events[i];
-            //cerr<<stamp[i]<<","<<which[i]<<","<<index[i]<<endl;
+        ll en=events.size();
+        VI stamps(en);
+        VI whichs(en);
+        VI indexs(en);
+        rng(ei,0,en){
+            tie(stamps[ei],whichs[ei],indexs[ei])=events[ei];
+        }
+        VI mrmcp_eids(en);
+        rng(ei,0,en){
+            mrmcp_eids[ei]=(ei==0)?(-1):(whichs[ei]==whichs[ei-1])?mrmcp_eids[ei-1]:(ei-1);
         }
 
-        VI prevo(en);
-        rng(i,0,en){
-            prevo[i]=(i==0)?(-1):(which[i]==which[i-1])?prevo[i-1]:(i-1);
+        VI eegL(NODES);
+        VI eegR(NODES);
+        rng(ni,0,NODES){
+            tie(eegL[ni],eegR[ni])=get_interval(NODES,ni,en);
         }
+        rng(ni,0,NODES){
+            if (eegL[ni]>eegR[ni]){
+                PutLL(ni,-1);
+                Send(ni);
+            }else{
+                ll focused_eid=eegL[ni];
+                PutLL(ni,0);
+                // Send starting point.
+                PutLL(ni,stamps[focused_eid]);
+                PutLL(ni,whichs[focused_eid]);
+                PutLL(ni,indexs[focused_eid]);
 
-        rng(i,0,NODES){
-            ll L,R;tie(L,R)=get_interval(NODES,i,en);
-            L=max(2LL,L);
-            //cerr<<"assign:"<<i<<","<<L<<","<<R<<endl;
-            ll startwhich=(L<en)?which[L]:(-1);
-            ll startindex=(L<en)?index[L]:(-1);
-            ll startstamp=(L<en)?stamp[L]:(-1);
-            ll pretid=(L>=en)?(-1):(prevo[L]<0)?0:index[prevo[L]];
-            ll prestamp=(L>=en)?(-1):(prevo[L]<0)?0:stamp[prevo[L]];
-            ll endwhich=(R==en-1)?-1:which[R+1];
-            ll endindex=(R==en-1)?-1:index[R+1];
-            ll endstamp=(R==en-1)?-1:stamp[R+1];
-            PutLL(i,startwhich);
-            PutLL(i,startindex);
-            PutLL(i,startstamp);
-            PutLL(i,pretid);
-            PutLL(i,prestamp);
-            PutLL(i,endwhich);
-            PutLL(i,endindex);
-            PutLL(i,endstamp);
-            Send(i);
+                // Send most recently met counter-point.
+                if (mrmcp_eids[focused_eid]<0){
+                    PutLL(ni,0);
+                    PutLL(ni,1-whichs[focused_eid]);
+                    PutLL(ni,0);
+                }else{
+                    PutLL(ni,stamps[mrmcp_eids[focused_eid]]);
+                    PutLL(ni,whichs[mrmcp_eids[focused_eid]]);
+                    PutLL(ni,indexs[mrmcp_eids[focused_eid]]);
+                }
+
+                // Send exclusively ending point.
+                if (ni==NODES-1||eegL[ni+1]>eegR[ni+1]){
+                    PutLL(ni,tottime0);
+                    PutLL(ni,0);
+                    PutLL(ni,segn);
+                }else{
+                    PutLL(ni,stamps[eegL[ni+1]]);
+                    PutLL(ni,whichs[eegL[ni+1]]);
+                    PutLL(ni,indexs[eegL[ni+1]]);
+                }
+                Send(ni);
+            }
         }
     }
 
     Receive(0);
-    ll startp=GetLL(0);
-    ll starttid=GetLL(0);
-    ll startstmp=GetLL(0);
-    ll pretid=GetLL(0);
-    ll prestmp=GetLL(0);
-    ll endp=GetLL(0);
-    ll endtid=GetLL(0);
-    ll endstamp=GetLL(0);
-    auto endkey=make_pair(endstamp,endp);
-    ll crtp=startp;
-    //cerr<<"From master:"<<startp<<","<<starttid<<","<<startstmp<<","<<pretid<<","<<prestmp<<","<<endp<<","<<endtid<<endl;
-    if (startp>=0){
-        tids[crtp].push_back(starttid);
-        stmps[crtp].push_back(startstmp);
-        appendPosition(crtp,starttid);
-        tmpn[crtp]=1;
+    ll job=GetLL(0);
+    if (job>=0){
+        ll startstamp=GetLL(0);
+        ll startwhich=GetLL(0);
+        ll startindex=GetLL(0);
+        ll mrmcpstamp=GetLL(0);
+        ll mrmcpwhich=GetLL(0);
+        ll mrmcpindex=GetLL(0);
+        ll exendstamp=GetLL(0);
+        ll exendwhich=GetLL(0);
+        ll exendindex=GetLL(0);
+        auto startkey=makekey(startstamp,startwhich);
+        auto endkey=makekey(exendstamp,exendwhich);
+        assert(startkey<endkey);
+        assert(startwhich!=mrmcpwhich);
+        ll crtwhich=startwhich;
+        VI posx(2);
+        VI posx_old(2);
+        VI posy(2);
+        VI posy_old(2);
+        VI posz(2);
+        VI posz_old(2);
+        VI index(2);
+        VI index_old(2);
+        VI stamp(2);
+        VI stamp_old(2);
+        VI ans(2);
 
-        tids[1-crtp].push_back(pretid);
-        stmps[1-crtp].push_back(prestmp);
-        appendPosition(1-crtp,pretid);
-        tmpn[1-crtp]=1;
+        // Init my queue.
+        ll dp=GetPosition(crtwhich,startindex);
+        parsePosition(dp,posx[crtwhich],posy[crtwhich],posz[crtwhich]);
+        stamp[crtwhich]=startstamp;
+        index[crtwhich]=startindex;
 
-        while (1){
-            if (tids[crtp].back()==N||getkey(crtp,tmpn[crtp]-1)<getkey(1-crtp,tmpn[1-crtp]-1)) break;
-            fetchNextSegment(1-crtp);
-        }
+        // Init enemy queue.
+        dp=GetPosition(1-crtwhich,mrmcpindex);
+        parsePosition(dp,posx_old[1-crtwhich],posy_old[1-crtwhich],posz_old[1-crtwhich]);
+        stamp_old[1-crtwhich]=mrmcpstamp;
+        index_old[1-crtwhich]=mrmcpindex;
 
+        // ll loopgtr=0;
         while(1){
-            ll crttid=tids[crtp].back();
-            if (crttid==N||getkey(crtp,tmpn[crtp]-1)>=endkey) break;
-            if (dangerdist(crtp)) ++ans[crtp];
-            fetchNextSegment(crtp);
-            crtp=(getkey(0,tmpn[0]-1)<getkey(1,tmpn[1]-1))?0:1;
+            // assert(loopgtr++<5000000);
+            index[1-crtwhich]=index_old[1-crtwhich]+1;
+            stamp[1-crtwhich]=stamp_old[1-crtwhich]+GetTime(1-crtwhich,index_old[1-crtwhich]);
+            ll dp=GetPosition(1-crtwhich,index[1-crtwhich]);
+            parsePosition(dp,posx[1-crtwhich],posy[1-crtwhich],posz[1-crtwhich]);
+            auto newkey=makekey(stamp[1-crtwhich],1-crtwhich);
+            if (newkey>startkey) break;
+            stamp_old[1-crtwhich]=stamp[1-crtwhich];
+            index_old[1-crtwhich]=index[1-crtwhich];
+            posx_old[1-crtwhich]=posx[1-crtwhich];
+            posy_old[1-crtwhich]=posy[1-crtwhich];
+            posz_old[1-crtwhich]=posz[1-crtwhich];
         }
+
+        // main local test.
+        // ll loopctr=0;
+        while(1){
+            // assert(loopctr++<5000000);
+            auto mrmkey=makekey(stamp_old[1-crtwhich],1-crtwhich);
+            auto crtkey=makekey(stamp[crtwhich],crtwhich);
+            auto futkey=makekey(stamp[1-crtwhich],1-crtwhich);
+            assert(mrmkey<crtkey);
+            assert(crtkey<futkey);
+            if (crtkey>=endkey) break;
+
+            // Test danger.
+            __int128 x0=posx_old[1-crtwhich];
+            __int128 y0=posy_old[1-crtwhich];
+            __int128 z0=posz_old[1-crtwhich];
+            __int128 x1=posx[1-crtwhich];
+            __int128 y1=posy[1-crtwhich];
+            __int128 z1=posz[1-crtwhich];
+            __int128 x=posx[crtwhich];
+            __int128 y=posy[crtwhich];
+            __int128 z=posz[crtwhich];
+            __int128 t0=stamp[crtwhich]-stamp_old[1-crtwhich];
+            __int128 t1=stamp[1-crtwhich]-stamp[crtwhich];
+            __int128 tt=t0+t1;
+            __int128 tdx=t0*x1+t1*x0-tt*x;
+            __int128 tdy=t0*y1+t1*y0-tt*y;
+            __int128 tdz=t0*z1+t1*z0-tt*z;
+            __int128 sd2=safedis2;
+            if (sqr(tdx)+sqr(tdy)+sqr(tdz)<sqr(tt)*sd2) ++ans[crtwhich];
+
+            //get next timepoint on route crtwhich.
+            stamp_old[crtwhich]=stamp[crtwhich];
+            index_old[crtwhich]=index[crtwhich];
+            posx_old[crtwhich]=posx[crtwhich];
+            posy_old[crtwhich]=posy[crtwhich];
+            posz_old[crtwhich]=posz[crtwhich];
+            ll dt=GetTime(crtwhich,index_old[crtwhich]);
+            stamp[crtwhich]+=dt;
+            index[crtwhich]++;
+            ll dp=GetPosition(crtwhich,index[crtwhich]);
+            parsePosition(dp,posx[crtwhich],posy[crtwhich],posz[crtwhich]);
+
+            // Choose next point.
+            auto newkey=makekey(stamp[crtwhich],crtwhich);
+            crtwhich=(newkey<futkey)?crtwhich:(1-crtwhich);
+        }
+        PutLL(0,0);
+        PutLL(0,ans[0]);
+        PutLL(0,ans[1]);
+        Send(0);
+    }else{
+        PutLL(0,-1);
+        Send(0);
     }
-    PutLL(0,ans[0]);
-    PutLL(0,ans[1]);
-    Send(0);
 
     if (ME==0){
-        ll ansp0=0,ansp1=0;
+        ll ans0=0;
+        ll ans1=0;
         rng(i,0,NODES){
             Receive(i);
-            ansp0+=GetLL(i);
-            ansp1+=GetLL(i);
+            ll smr=GetLL(i);
+            if (smr<0) continue;
+            ans0+=GetLL(i);
+            ans1+=GetLL(i);
         }
-        cout<<ansp0<<' '<<ansp1<<endl;
+        cout<<ans0<<" "<<ans1<<endl;
     }
     return 0;
 }
