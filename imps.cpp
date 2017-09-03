@@ -42,6 +42,33 @@ const ll M = 1000000007;
 ll scan() {ll r;scanf("%lld",&r);return r;}
 void scanstr(char *buf){scanf("%s",buf);}
 
+//dump
+void dumpVI(const VI &a){
+    ll n=a.size();
+    rng(i,0,n){
+        cerr<<"v("<<i<<")="<<a[i]<<endl;
+    }
+}
+void dumpVVI(const VVI &a){
+    ll n=a.size();
+    rng(i,0,n){
+        ll m=a[i].size();
+        rng(j,0,m){
+            cerr<<"v("<<i<<","<<j<<")="<<a[i][j]<<endl;
+        }
+    }
+}
+
+//extra operations
+ll log2floor(ll x){
+    assert(x>=1);
+    return 63LL-__builtin_clzll(x);
+}
+ll log2ceil(ll x){
+    assert(x>=1);
+    return (x==1)?0LL:(64LL-__builtin_clzll(x-1));
+}
+
 
 //Geometry (real number coordinates)
 struct PT {
@@ -111,12 +138,12 @@ ll extended_euclid(ll a, ll b, ll &x, ll &y) {
     }
     return a;
 }
-ll mod_inverse(ll a, ll n) {
-    ll x, y;
-    ll d = extended_euclid(a, n, x, y);
-    if (d > 1) return -1;
-    return mod(x, n);
-}
+// ll mod_inverse(ll a, ll n) {
+//     ll x, y;
+//     ll d = extended_euclid(a, n, x, y);
+//     if (d > 1) return -1;
+//     return mod(x, n);
+// }
 
 
 //Reduce 2D integer vector
@@ -559,6 +586,37 @@ struct BIT1D {
     T query(ll i){
         ll j=i-rg(i);
         return (j<0)?v[i]:(query(j)+v[i]);
+    }
+};
+
+
+/**
+ * RMQ Solver.
+ * O(nlogn) preprocess, O(1) answer.
+ */
+struct RMQOracle {
+    ll N;
+    VVI f0;
+    VVI f1;
+    RMQOracle(const VI &a){
+        N=a.size();
+        ll K=log2floor(N);
+        f0.resize(N);
+        f1.resize(N);
+        rng(i,0,N){f0[i].resize(K+1);f1[i].resize(K+1);}
+        rng(i,0,N) f0[i][0]=f1[i][0]=a[i];
+        rng(k,1,K+1){
+            ll half=1<<(k-1);
+            rng(i,0,N){
+                if (i+half*2<=N) f0[i][k]=min(f0[i][k-1],f0[i+half][k-1]);
+                if (i-half*2+1>=0) f1[i][k]=min(f1[i][k-1],f1[i-half][k-1]);
+            }
+        }
+    }
+    ll get(ll ql, ll qr){
+        assert(0<=ql);assert(ql<=qr);assert(qr<N);
+        ll k=log2floor(qr-ql+1);
+        return min(f0[ql][k],f1[qr][k]);
     }
 };
 
