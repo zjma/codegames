@@ -80,6 +80,7 @@ struct PT {
     PT operator - (const PT &p)  const { return PT(x - p.x, y - p.y); }
     PT operator * (double c)     const { return PT(x*c, y*c); }
     PT operator / (double c)     const { return PT(x / c, y / c); }
+    bool operator == (const PT &p) const {return x==p.x&&y==p.y;}
 };
 double dot(PT p, PT q) { return p.x*q.x + p.y*q.y; }
 double dist2(PT p, PT q) { return dot(p - q, p - q); }
@@ -90,8 +91,47 @@ ostream &operator<<(ostream &os, const PT &p) {
     os << "(" << p.x << "," << p.y << ")";
 }
 double vector2angle(const PT &v) {return atan2(v.y, v.x);}
+bool point_in_segment(PT l0a, PT l0b, PT p){
+    auto dva=l0a-p;
+    auto dvb=l0b-p;
+    return cross(dva,dvb)==0&&dva.x*dvb.x<=0&&dva.y*dvb.y<=0;
+}
 
-
+/**
+ * /returns (0,*) if no intersection,
+ *          or (1,p) if one intersection,
+ *          or (2,p) if infinite intersecitons, where `p` is one of them.
+ */
+pair<ll,PT> segment_intersection(PT l0a, PT l0b, PT l1a, PT l1b){
+    auto dv0=l0b-l0a;
+    auto dv1=l1b-l1a;
+    if (cross(dv0,dv1)==0){
+        auto ev0=l1a-l0a;
+        auto ev1=l1b-l0a;
+        if (cross(dv0,ev0)==0&&cross(dv0,ev1)==0){
+            if (l0a==l1a||l0a==l1b) return make_pair(1,l0a);
+            if (l0b==l1a||l0b==l1b) return make_pair(1,l0b);
+            if (point_in_segment(l0a,l0b,l1a)) return make_pair(2,l1a);
+            if (point_in_segment(l0a,l0b,l1b)) return make_pair(2,l1b);
+            return make_pair(0,PT());
+        }else{
+            return make_pair(0,PT());
+        }
+    }else{
+        if (point_in_segment(l0a,l0b,l1a)) return make_pair(1,l1a);
+        if (point_in_segment(l0a,l0b,l1b)) return make_pair(1,l1b);
+        if (point_in_segment(l1a,l1b,l0a)) return make_pair(1,l0a);
+        if (point_in_segment(l1a,l1b,l0b)) return make_pair(1,l0b);
+        auto tv0a=l1a-l0a;
+        auto tv0b=l1b-l0a;
+        auto tv1a=l0a-l1a;
+        auto tv1b=l0b-l1a;
+        if (cross(tv0a,dv0)*cross(dv0,tv0b)<=0) return make_pair(0,PT());
+        if (cross(tv1a,dv1)*cross(dv1,tv1b)<=0) return make_pair(0,PT());
+        auto k=cross(l1a-l0a,dv1)/cross(dv0,dv1);
+        return make_pair(1,l0a+(dv0*k));
+    }
+}
 //union find
 struct UnionFind {
     VI C;
