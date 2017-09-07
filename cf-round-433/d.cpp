@@ -46,6 +46,28 @@ void scanstr(char *buf){scanf("%s",buf);}
 
 int main()
 {
-    cout<<"WORKS"<<endl;
+    ll n=scan();
+    VI daycost(n);
+    rng(i,0,n){
+        daycost[i]=scan()/100;
+    }
+    VVI f(n+1,VI(32,INF));
+    f[0][0]=0;
+    rng(i,1,n+1){
+        ll bonustoday=daycost[i-1]/10;
+        rng(k,1,daycost[i-1]+1){
+            f[i][0]=min(f[i][0],f[i-1][k]+daycost[i-1]-k);//k by card, then a[i]-k by cash
+        }
+        rng(x,0,32){
+            if (x>=bonustoday) f[i][x]=min(f[i][x],f[i-1][x-bonustoday]+daycost[i-1]);//all by cash
+            if (x+daycost[i-1]<32) f[i][x]=min(f[i][x],f[i-1][x+daycost[i-1]]);//all by card
+        }
+    }
+    ll ans=INF;
+    rng(i,0,32){
+        ans=min(ans,f[n][i]);
+    }
+    ans*=100;
+    cout<<ans<<endl;
     return 0;
 }
