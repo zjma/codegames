@@ -411,6 +411,59 @@ void floyd(ll n, const VVI &e, VVI &dist){
     }
 }
 
+/**
+ * Fattest path between `src` and `sink`.
+ *
+ * \param n     #vertices
+ * \param cap   Adj table
+ * \param src
+ * \param sink
+ *
+ * \return  The fatness if a path between `src` and `sink` exists,
+ *          or -1 otherwise.
+ *          If exists, `path` will be filled with the fattest path.
+ */
+ll fattestPath(ll n, const VVI &cap, ll src, ll sink, VI &path){
+    assert(n>=2);
+    assert(cap.size()==n);
+    assert(cap[0].size()==n);
+    assert(src!=sink);
+    VI found(n);
+    VI prev(n,-1);
+    VI bw(n);
+    ll j=src;
+    bw[j]=INF;
+    while(j>=0){
+        ll k=-1;
+        found[j]=1;
+        if (j==sink) break;
+        rng(vi,0,n){
+            if (found[vi]) continue;
+            ll newbw=min(cap[j][vi],bw[j]);
+            if (bw[vi]<newbw) {
+                bw[vi]=newbw;
+                prev[vi]=j;
+            }
+            if (k<0||bw[vi]>bw[k]){
+                k=vi;
+            }
+        }
+        j=k;
+    }
+    if (!found[sink]) return -1;
+    ll ret=bw[sink];
+    VI tmp;
+    ll vi=sink;
+    while(1){
+        tmp.push_back(vi);
+        if (vi==src) break;
+        vi=prev[vi];
+    }
+    path.clear();
+    path.assign(tmp.rbegin(),tmp.rend());
+    return ret;
+}
+
 
 //Tarjan's strong connected components
 void tarjan_dfs(ll v, ll &timer, ll &cn,
@@ -606,6 +659,42 @@ struct FordFulk {
         return sol;
     }
 };
+
+/**
+ * Fattest path maxflow. O( E^2*log(V*max_single_edge_cap) )
+ * \param n     #vertices
+ * \param cap   adj table
+ * \param src
+ * \param sink
+ */
+ll maxflowFattestPath(ll n, const VVI &cap, ll src, ll sink){
+    assert(n>=2);
+    assert(cap.size()==n);
+    assert(cap[0].size()==n);
+    assert(src!=sink);
+    VI tmppath;
+    VVI flow(n,VI(n));
+    VVI rest(n,VI(n));
+    rng(i,0,n){
+        rng(j,0,n){
+            rest[i][j]=cap[i][j];
+        }
+    }
+    ll tot=0;
+    while(1){
+        ll sub=fattestPath(n,rest,src,sink,tmppath);
+        if (sub<0) break;
+        ll tmpn=tmppath.size();
+        rng(i,1,tmpn){
+            flow[tmppath[i-1]][tmppath[i]]+=sub;
+            flow[tmppath[i]][tmppath[i-1]]-=sub;
+            rest[tmppath[i-1]][tmppath[i]]-=sub;
+            rest[tmppath[i]][tmppath[i-1]]+=sub;
+        }
+        tot+=sub;
+    }
+    return tot;
+}
 
 
 // 1D Binary indexed tree.
