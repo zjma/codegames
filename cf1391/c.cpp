@@ -43,18 +43,23 @@ const ll M = 1000000007;
 //scanf shortcuts
 ll scan() {ll r;scanf("%lld",&r);return r;}
 void scanstr(char *buf){scanf("%s",buf);}
+ll mod(ll x) { return ((x%M) + M) % M; }
+ll add(ll a, ll b){return mod(mod(a)+mod(b));}
+ll sub(ll a, ll b){return mod(mod(a)-mod(b));}
+ll mul(ll a, ll b){return mod(mod(a)*mod(b));}
 
 int main()
 {
-    ll tn=scan();
-    rng(ti,0,tn){
-        ll l=scan();
-        ll r=scan();
-        if (r>=l*2){
-            cout<<l<<' '<<l*2<<endl;
-        }else{
-            cout<<"-1 -1"<<endl;
-        }
+    ll n=scan();
+    ll f=1;
+    rng(i,0,n){
+        f=mul(f,i+1);
     }
+    ll e=1;
+    rng(i,0,n-1){
+        e=mul(e,2);
+    }
+    ll ans=sub(f,e);
+    cout<<ans<<endl;
     return 0;
 }

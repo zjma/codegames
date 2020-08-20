@@ -46,15 +46,11 @@ void scanstr(char *buf){scanf("%s",buf);}
 
 int main()
 {
-    ll tn=scan();
-    rng(ti,0,tn){
-        ll l=scan();
-        ll r=scan();
-        if (r>=l*2){
-            cout<<l<<' '<<l*2<<endl;
-        }else{
-            cout<<"-1 -1"<<endl;
-        }
-    }
+    bool x=true;
+    bool y=false;
+    ll z1=x*5;
+    ll z2=y*5;
+    cout<<z1<<endl;
+    cout<<z2<<endl;
     return 0;
 }

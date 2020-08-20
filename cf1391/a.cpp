@@ -46,15 +46,6 @@ void scanstr(char *buf){scanf("%s",buf);}
 
 int main()
 {
-    ll tn=scan();
-    rng(ti,0,tn){
-        ll l=scan();
-        ll r=scan();
-        if (r>=l*2){
-            cout<<l<<' '<<l*2<<endl;
-        }else{
-            cout<<"-1 -1"<<endl;
-        }
-    }
+    cout<<"WORKS"<<endl;
     return 0;
 }
