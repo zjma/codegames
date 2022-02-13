@@ -151,6 +151,19 @@ struct UnionFind {
     }
 };
 
+ll kruskal(ll n, VI &e2f, VI &e2t, VI &e2w) {
+    UnionFind uf(n);
+    ll en=e2f.size();
+    vector<pair<ll,ll>> weightIdxPairs(en);
+    rng(ei,0,en) weightIdxPairs[ei]=make_pair(e2w[ei],ei);
+    sort(weightIdxPairs.begin(), weightIdxPairs.end());
+    ll total=0;
+    rng(i,0,en){
+        ll ei = weightIdxPairs[i].second;
+        if (uf.merge(e2f[ei],e2t[ei])==1) total+=e2w[ei];
+    }
+    return total;
+}
 
 //euclid, modulo
 ll mod(ll x) { return ((x%M) + M) % M; }
