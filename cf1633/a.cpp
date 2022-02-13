@@ -44,15 +44,27 @@ const ll M = 1000000007;
 ll scan() {ll r;scanf("%lld",&r);return r;}
 void scanstr(char *buf){scanf("%s",buf);}
 
-ll work(){
-    //TODO
+void work(){
+    ll n=scan();
+    if (n%7==0){
+        cout<<n<<endl;
+        return;
+    }
+    ll x=n/10;
+    rng(i,0,10){
+        ll cur=x*10+i;
+        if (cur%7==0){
+            cout<<cur<<endl;
+            return;
+        }
+    }
 }
 
 int main()
 {
     ll tn=scan();
     rng(ti,0,tn){
-        cout<<work()<<endl;
+        work();
     }
     return 0;
 }

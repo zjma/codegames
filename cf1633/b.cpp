@@ -43,9 +43,19 @@ const ll M = 1000000007;
 //scanf shortcuts
 ll scan() {ll r;scanf("%lld",&r);return r;}
 void scanstr(char *buf){scanf("%s",buf);}
-
-ll work(){
-    //TODO
+char buf[200001];
+int work(){
+    scanstr(buf);
+    ll n=0;
+    ll ct[2];
+    ct[0]=ct[1]=0;
+    while(buf[n]){
+        ct[buf[n]-'0']++;
+        n++;
+    }
+    if (ct[0]>ct[1]) return ct[1];
+    if (ct[1]>ct[0]) return ct[0];
+    return ct[0]-1;
 }
 
 int main()
