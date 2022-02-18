@@ -1136,6 +1136,39 @@ struct SuffixTree{
     }
 };
 
+void heavyLightPartitionDfs(VVI &v2chds, VI &v2size, ll prt, ll cur, ll fromHeavyEdge, VI &v2p, VI &v2poffset, VVI &p2vs, VI &p2prt){
+    ll curpid=-1;
+    if (fromHeavyEdge){
+        curpid=v2p[prt];
+        v2poffset[cur]=v2poffset[prt]+1;
+    }else{
+        p2vs.emplace_back();
+        curpid=p2vs.size()-1;
+        v2poffset[cur]=0;
+        p2prt.push_back((prt<0)?(-1):v2p[prt]);
+    }
+    v2p[cur]=curpid;
+    p2vs[curpid].push_back(cur);
+    ll foundHeavyEdge=0;
+    for(ll chd:v2chds[cur]){
+        if (v2size[chd]*2>=v2size[cur]){
+            foundHeavyEdge=1;
+            heavyLightPartitionDfs(v2chds,v2size,cur,chd,1,v2p,v2poffset,p2vs,p2prt);
+        }else{
+            heavyLightPartitionDfs(v2chds,v2size,cur,chd,0,v2p,v2poffset,p2vs,p2prt);
+        }
+    }
+}
+
+ll heavyLightPartition(VVI &v2chds, VI &v2size, ll root, VI &v2p, VI &v2poffset, VVI &p2vs, VI &p2prt){
+    ll vn=v2chds.size();
+    v2p.resize(vn,-1);
+    v2poffset.resize(vn,-1);
+    p2vs.clear();
+    p2prt.clear();
+    heavyLightPartitionDfs(v2chds,v2size,-1,root,0,v2p,v2poffset,p2vs,p2prt);
+    return p2vs.size();
+}
 
 int main()
 {
